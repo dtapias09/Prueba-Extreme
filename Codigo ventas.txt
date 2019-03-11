@@ -1,0 +1,104 @@
+public class ventas extends javax.swing.JFrame {
+    
+   conexion cone = new conexion();
+   Connection cone2;
+   int id=0, stock=0, prec=0, cod=0;
+   
+CREAR Y VISUALIZAR TABLA DE VENTAS
+      public void tabla(){
+
+       String col[]={"CODIGO", "CANTIDAD","TOTAL"}; //crea los nombres de cada columna
+       DefaultTableModel model = new DefaultTableModel(null, col);
+       
+       try {
+           Statement st = cone2.createStatement(); //llama la base de datos
+           ResultSet rs = st.executeQuery("Select * from VENTAS"); //mandamos una consulta sql
+           
+           while (rs.next()) { //´por medio del while recorremos la tabla mostrada en el SELECT FROM
+               Object fil []={rs.getString("codigo"), rs.getString("cantidad_v"), rs.getString("total")};
+               model.addRow(fil);
+           }
+           tb2.setModel(model);
+           st.close();
+       } catch (SQLException ex) {
+           System.out.println("error: "+ex);
+       }
+   }
+METODO DE ACTUALIZAR INVENTARIO LUEGO DE HACER UNA VENTA
+      public void actualizar(){
+          int codigo, cantidad;
+          codigo = id;
+          cantidad = stock;
+          
+          cone2 = cone.cargarBD();
+          if (cone2!=null) {
+              try {
+                  Statement st = cone2.createStatement();
+                  String act = "UPDATE producto set cantidad = "+stock+" WHERE codigo= "+id+"";
+                  st.executeUpdate(act);
+                  System.out.println("Tabla producto, actualizado stock");
+                  st.close();
+              } catch (SQLException ex) {
+                  Logger.getLogger(ventas.class.getName()).log(Level.SEVERE, null, ex);
+              }
+          }
+      }
+ 
+BOTON -INSERTAR-
+    private void tbn6ActionPerformed(java.awt.event.ActionEvent evt) {                                     
+        cone2 = cone.cargarBD();
+        if (cone2!=null) {
+            try {
+                int codigo = Integer.parseInt(txt6.getText());
+                int cantidad = Integer.parseInt(txt5.getText());
+                double total =0;
+                 // creamos una variable cod para asignar el codigo consultado
+         
+           Statement st = cone2.createStatement(); //llama la base de datos
+           ResultSet rs = st.executeQuery("Select * from producto WHERE codigo = "+codigo+""); //mandamos una consulta sql
+        
+           while (rs.next()) { //´por medio del while recorremos la tabla mostrada en el SELECT FROM
+                cod = Integer.parseInt(rs.getString("codigo"));
+                stock = Integer.parseInt(rs.getString("cantidad")); //asignamos el valor la cantidad registrada en producto
+                prec = Integer.parseInt(rs.getString("precio")); // asignamos el valor del precio registrado en producto
+           }
+                if (cod==codigo) {
+                  if (cantidad<stock) {
+              double IVA=0.19;
+                total = prec * cantidad;
+                IVA=IVA*total;
+                total=total+IVA; //calculamos el total con el IVA
+                stock = stock-cantidad;
+                String insert="insert into ventas (codigo, cantidad_v, total) values "
+                            + "("+codigo+", "+cantidad+" , "+total+")";
+                
+                st.executeUpdate(insert);
+                JOptionPane.showMessageDialog(null, "Venta Registrada");
+                tabla();
+                id = codigo;  
+                actualizar();
+                
+                }else{
+                    JOptionPane.showMessageDialog(null, "Cantidad de Stock insuficiente para su compra");
+                }  
+                }else{
+                    JOptionPane.showMessageDialog(null, "El codigo ingresado no existe, intente de nuevo");
+                }
+                
+                    String disponible = Integer.toString(stock); //convertimos numerico a caracter
+                    String tot = Double.toString(total); //convertimos numerico a caracter
+                    txt8.setText(disponible); //mostramos por medio del campo de texto el valor de stock
+                    txt7.setText(tot); //mostramos por medio del campo de texto el valor total
+                
+            
+            } catch (SQLException ex) {
+                System.out.println("error: "+ ex);
+            }
+        }
+    }                                    
+
+                                            
+BOTON -SALIR-
+    private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {                                           
+        System.exit(0);
+    }                            

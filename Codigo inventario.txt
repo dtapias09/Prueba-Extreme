@@ -1,0 +1,138 @@
+CREAR Y VISUALIZAR TABLA
+public void tabla(){
+
+       String col[]={"CODIGO", "NOMBRE","CANTIDAD", "PRECIO"}; //crea los nombres de cada columna
+       DefaultTableModel model = new DefaultTableModel(null, col);
+       
+       try {
+           Statement st = cone2.createStatement(); //llama la base de datos
+           ResultSet rs = st.executeQuery("Select * from producto"); //mandamos una consulta sql
+           
+           while (rs.next()) { //´por medio del while recorremos la tabla mostrada en el SELECT FROM
+               Object fil []={rs.getString("codigo"), rs.getString("nombre"), rs.getString("cantidad"), rs.getString("precio")};
+               model.addRow(fil);
+           }
+           tb1.setModel(model);
+           st.close();
+       } catch (SQLException ex) {
+           System.out.println("error: "+ex);
+       }
+   } 
+
+BOTON -ELIMINAR-
+public void eliminar(){
+       
+       cone2 = cone.cargarBD();
+       if (cone2!=null) {
+           try {
+               int codigo = Integer.parseInt(txt1.getText());  //guardamos el valor de texto en el campo codigo en valor numerico en la variable codigo
+               
+               Statement st = cone2.createStatement(); //llamamos la base de datos producto
+               System.out.println("aqui "+ codigo);
+               String eliminar="delete from producto WHERE codigo="+codigo; //creamos comando sql para eliminar registro por ID
+               st.executeUpdate(eliminar); //ejecutamos el comando sql
+               st.close(); //cerramos la conexion a la base de datos.
+               JOptionPane.showMessageDialog(null, "Registro eliminado Satifactoriamente");
+               tabla();
+           } catch (SQLException ex) {
+               Logger.getLogger(inventario.class.getName()).log(Level.SEVERE, null, ex);
+           }
+       }
+   }
+
+   public void limpiar(){
+                    txt1.setText("");
+                    txt2.setText("");
+                    txt3.setText("");
+                    txt4.setText("");  
+   }
+
+CAMPO -FILTRAR-
+   public void filtrar(String x){
+       cone2 = cone.cargarBD();
+       String nombre = txt9.getText();
+       if (cone2!=null) {
+       try {
+           Statement st = cone2.createStatement();
+           String filt ="SELECT * from producto WHERE nombre LIKE"
+                   + " ' %"+nombre.trim()+"%'";
+           ResultSet rs = st.executeQuery(filt);
+           
+           String col[]={"CODIGO", "NOMBRE","CANTIDAD", "PRECIO"}; //crea los nombres de cada columna
+           DefaultTableModel model = new DefaultTableModel(null, col);
+       
+           while (rs.next()) { //´por medio del while recorremos la tabla mostrada en el SELECT FROM
+            Object fil []={rs.getString("codigo"), rs.getString("nombre"), rs.getString("cantidad"), rs.getString("precio")};
+            model.addRow(fil);
+           }
+           tb1.setModel(model);
+           
+       
+       } catch (SQLException ex) {
+           Logger.getLogger(inventario.class.getName()).log(Level.SEVERE, null, ex);
+       }    
+       }
+       
+   }
+    public inventario() {
+        initComponents();
+        cone.crearBD();
+        cone2 = cone.cargarBD();
+        if (cone2!=null) {
+            tabla();
+        }
+    }	
+
+
+BOTON -INSERTAR REGISTRO-
+private void btn1ActionPerformed(java.awt.event.ActionEvent evt) {                                   
+        cone2 = cone.cargarBD();
+        if (cone2!=null) {
+            try {
+                int codigo = Integer.parseInt(txt1.getText());
+                String nombre = txt2.getText().toUpperCase();
+                int cantidad = Integer.parseInt(txt3.getText());
+                int precio = Integer.parseInt(txt4.getText());
+                        
+                Statement st = cone2.createStatement();
+                String insert="insert into producto (codigo, nombre, cantidad, precio) values "
+                           + "("+codigo+", ' "+nombre+" ', "+cantidad+", "+precio+")";
+                st.executeUpdate(insert);
+                JOptionPane.showMessageDialog(null, "Producto ingresado");
+                tabla();
+                limpiar();
+            } catch (SQLException ex) {
+                System.out.println("error: "+ ex);
+            }
+        }
+    }
+
+BOTON -SALIR-
+ private void btn5ActionPerformed(java.awt.event.ActionEvent evt) {                                     
+        System.exit(0);
+    }
+
+BOTON -CONSULTAR-
+private void btn2ActionPerformed(java.awt.event.ActionEvent evt) {                                     
+        cone2 = cone.cargarBD();
+        int codigo = Integer.parseInt(txt1.getText());
+        if (cone2 != null) {
+            try {
+                Statement st = cone2.createStatement();
+                ResultSet rs = st.executeQuery("select * from producto WHERE codigo = "+codigo);
+                if (rs.next()) {
+                    txt2.setText(rs.getString("nombre"));
+                    txt3.setText(rs.getString("cantidad"));
+                    txt4.setText(rs.getString("precio"));  
+                    
+                    txt2.setEditable(false);
+                    txt3.setEditable(false);
+                    txt4.setEditable(false);
+                    
+                }
+            } catch (Exception e) {
+                System.out.println("error: "+e);
+            }
+        }
+    }
+
